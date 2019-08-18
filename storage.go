@@ -19,6 +19,7 @@ type Storage struct {
 	curbatch int
 	mlock    sync.Mutex
 	dlock    sync.Mutex
+	aiochan  chan bool
 }
 
 var (
@@ -41,6 +42,7 @@ func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, err
 		buf:      bufPool.Get().(*bytes.Buffer),
 		maxtime:  maxtime,
 		maxbatch: maxbatch,
+		aiochan:  make(chan bool, 10),
 	}
 
 	s.timer = time.NewTimer(maxtime)
@@ -90,6 +92,7 @@ func (s *Storage) Flush(lock bool) {
 	oldbuf := s.buf
 	s.buf = bufPool.Get().(*bytes.Buffer)
 
+	s.aiochan <- true
 	go func() {
 		s.dlock.Lock()
 		_, err := io.Copy(s.fd, oldbuf)
@@ -103,6 +106,7 @@ func (s *Storage) Flush(lock bool) {
 		}
 		oldbuf.Reset()
 		bufPool.Put(oldbuf)
+		_ = <-s.aiochan
 	}()
 }
 
