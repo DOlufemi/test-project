@@ -49,11 +49,7 @@ func handleSig(sigchan chan os.Signal, storage *Storage) {
 		case syscall.SIGHUP:
 			log.Println("Reopening storage")
 			storage.Reload()
-		case syscall.SIGTERM:
-			fallthrough
-		case syscall.SIGINT:
-			fallthrough
-		case syscall.SIGQUIT:
+		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			log.Println("Flushing storage")
 			storage.Flush(true)
 			os.Exit(0)
