@@ -40,6 +40,15 @@ func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, err
 	return s, nil
 }
 
+func (s *Storage) Reload() error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.Flush(false)
+	fd, err := os.OpenFile(s.fd.Name(), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0640)
+	s.fd = fd
+	return err
+}
+
 func (s *Storage) Write(m *Metric) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
