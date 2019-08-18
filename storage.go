@@ -73,10 +73,8 @@ func (s *Storage) Flush(lock bool) error {
 }
 
 func (s *Storage) flushOnTimeout() {
-	for {
-		select {
-		case <-s.timer.C:
-			_ = s.Flush(true)
-		}
+	for range s.timer.C {
+		_ = s.Flush(true)
 	}
+
 }
