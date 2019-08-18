@@ -43,6 +43,6 @@ func ParseMetric(data []byte) (*Metric, error) {
 }
 
 // Metric.Free releases Metric struct to pool
-func (m Metric) Free() {
+func (m *Metric) Free() {
 	metricPool.Put(m)
 }
