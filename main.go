@@ -52,7 +52,10 @@ func handleSig(sigchan chan os.Signal, storage *Storage) {
 		switch sig {
 		case syscall.SIGHUP:
 			log.Println("Reopening storage")
-			storage.Reload()
+			err := storage.Reload()
+			if err != nil {
+				log.Printf("Failed to reload storage file: %s", err)
+			}
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			log.Println("Flushing storage")
 			storage.Flush(true)

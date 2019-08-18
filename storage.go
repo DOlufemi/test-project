@@ -40,6 +40,7 @@ func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, err
 	return s, nil
 }
 
+// Reload reopens storage file
 func (s *Storage) Reload() error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
