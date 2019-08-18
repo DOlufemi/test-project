@@ -12,6 +12,7 @@ const (
 	defaultTimer = 5 * time.Second
 )
 
+// Storage struct wraps storage file for recieved metrics
 type Storage struct {
 	fd *os.File
 	buf *bytes.Buffer
@@ -21,6 +22,7 @@ type Storage struct {
 	mutex sync.Mutex
 }
 
+// NewStorage creates new Storage object
 func NewStorage(path string, maxbatch int) (*Storage, error)  {
 	fd, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0640)
 	if err != nil {
@@ -58,6 +60,7 @@ func (s *Storage) Write(m *Metric) error {
 	return nil
 }
 
+// Storage.Flush flushes buffered data into storage file
 func (s *Storage) Flush(lock bool) error {
 	if lock {
 		s.mutex.Lock()

@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// Metric struct contains metric data
 type Metric struct{
 	TS int64 `json:"ts"`
 	Key string `json:"key"`
@@ -24,6 +25,7 @@ func (m *Metric) String() string {
 	return fmt.Sprintf("%d %s %d", m.TS, m.Key, m.Value)
 }
 
+// ParseMetric creates Metric object from serialized data
 func ParseMetric(data []byte) (*Metric, error) {
 	result := metricPool.Get().(Metric)
 
@@ -40,6 +42,7 @@ func ParseMetric(data []byte) (*Metric, error) {
 	return &result, nil
 }
 
+// Metric.Free releases Metric struct to pool
 func (m Metric) Free() {
 	metricPool.Put(m)
 }
