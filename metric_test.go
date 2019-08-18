@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -13,12 +14,12 @@ func TestParseMetric(t *testing.T) {
 	m, err := ParseMetric([]byte(testData1))
 	assert.Nil(t, err)
 
-	assert.Equal(t, m.TS, int64(0))
-	assert.Equal(t, m.Key, "metric1")
-	assert.Equal(t, m.Value, int64(10))
+	assert.Equal(t, int64(0), m.TS)
+	assert.Equal(t, "metric1", m.Key)
+	assert.Equal(t, int64(10), m.Value)
 }
 
-func TestString(t *testing.T) {
+func TestFormat(t *testing.T) {
 	m, err := ParseMetric([]byte(`{"ts": 0, "key": "metric1", "val": 10}`))
 	assert.Nil(t, err)
 

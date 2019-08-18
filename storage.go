@@ -8,34 +8,32 @@ import (
 	"time"
 )
 
-const (
-	defaultTimer = 5 * time.Second
-)
-
 // Storage struct wraps storage file for recieved metrics
 type Storage struct {
-	fd *os.File
-	buf *bytes.Buffer
-	timer *time.Timer
+	fd       *os.File
+	buf      *bytes.Buffer
+	timer    *time.Timer
+	maxtime  time.Duration
 	maxbatch int
 	curbatch int
-	mutex sync.Mutex
+	mutex    sync.Mutex
 }
 
 // NewStorage creates new Storage object
-func NewStorage(path string, maxbatch int) (*Storage, error)  {
+func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, error) {
 	fd, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0640)
 	if err != nil {
 		return nil, err
 	}
 
 	s := &Storage{
-		fd: fd,
-		buf: bytes.NewBuffer(nil),
+		fd:       fd,
+		buf:      bytes.NewBuffer(nil),
+		maxtime:  maxtime,
 		maxbatch: maxbatch,
 	}
 
-	s.timer = time.NewTimer(defaultTimer)
+	s.timer = time.NewTimer(maxtime)
 	s.timer.Stop()
 	go s.flushOnTimeout()
 
@@ -47,7 +45,7 @@ func (s *Storage) Write(m *Metric) error {
 	defer s.mutex.Unlock()
 
 	if s.buf.Len() == 0 {
-		s.timer.Reset(defaultTimer)
+		s.timer.Reset(s.maxtime)
 	}
 
 	s.buf.WriteString(m.String())

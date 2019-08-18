@@ -4,12 +4,13 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
 	debug bool
 	spath string
-	addr = "[::1]:8080"
+	addr  = "[::1]:8080"
 
 	storage *Storage
 )
@@ -24,8 +25,8 @@ func main() {
 	}
 
 	var err error
-	storage, err = NewStorage(spath, 1000)
-	if err !=nil {
+	storage, err = NewStorage(spath, 1000, 5*time.Second)
+	if err != nil {
 		log.Fatalf("Failed to open storage: %s\n", err)
 	}
 

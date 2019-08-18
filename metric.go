@@ -7,10 +7,10 @@ import (
 )
 
 // Metric struct contains metric data
-type Metric struct{
-	TS int64 `json:"ts"`
-	Key string `json:"key"`
-	Value int64 `json:"val"`
+type Metric struct {
+	TS    int64  `json:"ts"`
+	Key   string `json:"key"`
+	Value int64  `json:"val"`
 }
 
 var (
