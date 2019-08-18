@@ -20,6 +20,7 @@ Stored format was inspired by graphite metrics protocol
 Install & Run
 -------
 ```bash
+# https://hub.docker.com/r/iavael/test-project
 docker run iavael/test-project
 ```
 
