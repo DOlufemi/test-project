@@ -72,12 +72,17 @@ func (s *Storage) Write(m *Metric) error {
 func (s *Storage) Flush(lock bool) error {
 	if lock {
 		s.mutex.Lock()
-		defer s.mutex.Unlock()
 	}
-	_, err := io.Copy(s.fd, s.buf)
 	s.buf.Reset()
 	s.timer.Stop()
-	return err
+	_, err := io.Copy(s.fd, s.buf)
+	if lock {
+		s.mutex.Unlock()
+	}
+	if err != nil {
+		return err
+	}
+	return s.fd.Sync()
 }
 
 func (s *Storage) flushOnTimeout() {
