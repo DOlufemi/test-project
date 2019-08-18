@@ -3,6 +3,10 @@ language: go
 go:
   - "1.12"
 
+stages:
+  - test
+  - build
+
 jobs:
   include:
     - stage: test
