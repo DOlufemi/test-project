@@ -14,14 +14,14 @@ func handleAPIv1Write(storage *Storage) func(w http.ResponseWriter, r *http.Requ
 		}
 
 		if debug {
-			log.Printf("got metric from %s", r.RemoteAddr)
+			log.Printf("[DEBUG] Got metric from %s", r.RemoteAddr)
 		}
 
 		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			if debug {
-				log.Printf("Failed to read body: %s", err)
+				log.Printf("[DEBUG] Failed to read body: %s", err)
 			}
 			return
 		}
@@ -30,7 +30,7 @@ func handleAPIv1Write(storage *Storage) func(w http.ResponseWriter, r *http.Requ
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			if debug {
-				log.Printf("Failed to parse data: %s", err)
+				log.Printf("[DEBUG] Failed to parse data: %s", err)
 			}
 			return
 		}
@@ -39,7 +39,7 @@ func handleAPIv1Write(storage *Storage) func(w http.ResponseWriter, r *http.Requ
 		err = storage.Write(m)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			log.Printf("Failed to save metric: %s", err)
+			log.Printf("[ERROR] Failed to save metric: %s", err)
 			return
 		}
 	}

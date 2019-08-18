@@ -31,7 +31,7 @@ func main() {
 
 	storage, err := NewStorage(spath, maxbatch, time.Duration(maxtime)*time.Second)
 	if err != nil {
-		log.Fatalf("Failed to open storage: %s\n", err)
+		log.Fatalf("[FATAL] Failed to open storage: %s\n", err)
 	}
 
 	sigchan := make(chan os.Signal, 1)
@@ -40,10 +40,10 @@ func main() {
 
 	http.HandleFunc("/api/v1/write", handleAPIv1Write(storage))
 
-	log.Printf("Starting server on %s\n", addr)
+	log.Printf("[INFO] Starting server on %s\n", addr)
 	err = http.ListenAndServe(addr, nil)
 	if err != nil {
-		log.Fatalf("Failed to listen http socket: %s\n", err)
+		log.Fatalf("[FATAL] Failed to listen http socket: %s\n", err)
 	}
 }
 
@@ -51,17 +51,14 @@ func handleSig(sigchan chan os.Signal, storage *Storage) {
 	for sig := range sigchan {
 		switch sig {
 		case syscall.SIGHUP:
-			log.Println("Reopening storage")
+			log.Println("[INFO] Reopening storage")
 			err := storage.Reload()
 			if err != nil {
-				log.Printf("Failed to reload storage file: %s", err)
+				log.Printf("[ERROR] Failed to reload storage file: %s", err)
 			}
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-			log.Println("Flushing storage")
-			err := storage.Flush(true)
-			if err != nil {
-				log.Printf("Failed to flush storage: %s", err)
-			}
+			log.Println("[INFO] Flushing storage")
+			storage.Flush(true)
 			os.Exit(0)
 		}
 	}

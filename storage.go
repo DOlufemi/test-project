@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"io"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -16,8 +17,17 @@ type Storage struct {
 	maxtime  time.Duration
 	maxbatch int
 	curbatch int
-	mutex    sync.Mutex
+	mlock    sync.Mutex
+	dlock    sync.Mutex
 }
+
+var (
+	bufPool = sync.Pool{
+		New: func() interface{} {
+			return bytes.NewBuffer(nil)
+		},
+	}
+)
 
 // NewStorage creates new Storage object
 func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, error) {
@@ -28,7 +38,7 @@ func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, err
 
 	s := &Storage{
 		fd:       fd,
-		buf:      bytes.NewBuffer(nil),
+		buf:      bufPool.Get().(*bytes.Buffer),
 		maxtime:  maxtime,
 		maxbatch: maxbatch,
 	}
@@ -42,20 +52,17 @@ func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, err
 
 // Reload reopens storage file
 func (s *Storage) Reload() error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	err := s.Flush(false)
-	if err != nil {
-		return err
-	}
+	s.mlock.Lock()
+	defer s.mlock.Unlock()
+	s.Flush(false)
 	fd, err := os.OpenFile(s.fd.Name(), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0640)
 	s.fd = fd
 	return err
 }
 
 func (s *Storage) Write(m *Metric) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mlock.Lock()
+	defer s.mlock.Unlock()
 
 	if s.buf.Len() == 0 {
 		s.timer.Reset(s.maxtime)
@@ -66,30 +73,41 @@ func (s *Storage) Write(m *Metric) error {
 
 	s.curbatch++
 	if s.curbatch >= s.maxbatch {
-		return s.Flush(false)
+		s.Flush(false)
 	}
 	return nil
 }
 
 // Flush flushes buffered data into storage file
-func (s *Storage) Flush(lock bool) error {
+func (s *Storage) Flush(lock bool) {
 	if lock {
-		s.mutex.Lock()
-		defer s.mutex.Unlock()
+		s.mlock.Lock()
+		defer s.mlock.Unlock()
 	}
 	s.timer.Stop()
 	s.curbatch = 0
-	_, err := io.Copy(s.fd, s.buf)
-	if err != nil {
-		return err
-	}
-	s.buf.Reset()
-	return s.fd.Sync()
+
+	oldbuf := s.buf
+	s.buf = bufPool.Get().(*bytes.Buffer)
+
+	go func() {
+		s.dlock.Lock()
+		_, err := io.Copy(s.fd, oldbuf)
+		if err != nil {
+			log.Printf("[ERROR] Failed to flush buffer to storage: %s", err)
+		}
+		s.dlock.Unlock()
+		err = s.fd.Sync()
+		if err != nil {
+			log.Printf("[ERROR] Failed to fsync storage: %s", err)
+		}
+		oldbuf.Reset()
+		bufPool.Put(oldbuf)
+	}()
 }
 
 func (s *Storage) flushOnTimeout() {
 	for range s.timer.C {
-		_ = s.Flush(true)
+		s.Flush(true)
 	}
-
 }
