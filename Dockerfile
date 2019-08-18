@@ -1,6 +1,6 @@
 FROM golang:1.12-alpine3.10 AS builder
 WORKDIR /go/src/github.com/iavael/test-project
-ADD . .
+COPY . .
 RUN go build -v .
 
 FROM alpine:3.10
