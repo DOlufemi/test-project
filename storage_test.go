@@ -62,7 +62,7 @@ func TestStorageTime(t *testing.T) {
 	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
 	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	buf, err := ioutil.ReadFile(spath)
 	assert.Nil(t, err)
