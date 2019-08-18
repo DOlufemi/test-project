@@ -56,17 +56,17 @@ On my computer service shows this performance with default settings
     Licensed to The Apache Software Foundation, http://www.apache.org/
     
     Benchmarking localhost (be patient)
+    Completed 10000 requests
+    Completed 20000 requests
+    Completed 30000 requests
+    Completed 40000 requests
+    Completed 50000 requests
+    Completed 60000 requests
+    Completed 70000 requests
+    Completed 80000 requests
+    Completed 90000 requests
     Completed 100000 requests
-    Completed 200000 requests
-    Completed 300000 requests
-    Completed 400000 requests
-    Completed 500000 requests
-    Completed 600000 requests
-    Completed 700000 requests
-    Completed 800000 requests
-    Completed 900000 requests
-    Completed 1000000 requests
-    Finished 1000000 requests
+    Finished 100000 requests
     
     
     Server Software:        
@@ -77,33 +77,33 @@ On my computer service shows this performance with default settings
     Document Length:        0 bytes
     
     Concurrency Level:      100
-    Time taken for tests:   110.640 seconds
-    Complete requests:      1000000
+    Time taken for tests:   9.977 seconds
+    Complete requests:      100000
     Failed requests:        0
-    Total transferred:      75000000 bytes
-    Total body sent:        187000000
+    Total transferred:      7500000 bytes
+    Total body sent:        18700000
     HTML transferred:       0 bytes
-    Requests per second:    9038.31 [#/sec] (mean)
-    Time per request:       11.064 [ms] (mean)
-    Time per request:       0.111 [ms] (mean, across all concurrent requests)
-    Transfer rate:          661.99 [Kbytes/sec] received
-                            1650.55 kb/s sent
-                            2312.54 kb/s total
+    Requests per second:    10023.28 [#/sec] (mean)
+    Time per request:       9.977 [ms] (mean)
+    Time per request:       0.100 [ms] (mean, across all concurrent requests)
+    Transfer rate:          734.13 [Kbytes/sec] received
+                            1830.42 kb/s sent
+                            2564.55 kb/s total
     
     Connection Times (ms)
                   min  mean[+/-sd] median   max
-    Connect:        0    4   1.8      4      41
-    Processing:     0    7   4.7      6     251
-    Waiting:        0    5   4.5      5     249
-    Total:          0   11   5.1     10     256
+    Connect:        0    4   1.0      4      16
+    Processing:     0    6   1.8      6      46
+    Waiting:        0    5   1.8      4      44
+    Total:          0   10   2.0     10      50
     
     Percentage of the requests served within a certain time (ms)
       50%     10
-      66%     11
+      66%     10
       75%     11
-      80%     12
-      90%     14
-      95%     17
-      98%     23
-      99%     30
-     100%    256 (longest request)
+      80%     11
+      90%     12
+      95%     13
+      98%     15
+      99%     17
+     100%     50 (longest request)
