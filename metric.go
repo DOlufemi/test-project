@@ -16,7 +16,7 @@ type Metric struct {
 var (
 	metricPool = sync.Pool{
 		New: func() interface{} {
-			return Metric{}
+			return &Metric{}
 		},
 	}
 )
@@ -27,7 +27,7 @@ func (m *Metric) String() string {
 
 // ParseMetric creates Metric object from serialized data
 func ParseMetric(data []byte) (*Metric, error) {
-	result := metricPool.Get().(Metric)
+	result := metricPool.Get().(*Metric)
 
 	err := json.Unmarshal(data, &result)
 	if err != nil {
@@ -39,7 +39,7 @@ func ParseMetric(data []byte) (*Metric, error) {
 		return nil, fmt.Errorf("Empty metric key")
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 // Free releases Metric struct to pool
