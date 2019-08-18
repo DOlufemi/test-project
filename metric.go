@@ -42,7 +42,7 @@ func ParseMetric(data []byte) (*Metric, error) {
 	return &result, nil
 }
 
-// Metric.Free releases Metric struct to pool
+// Free releases Metric struct to pool
 func (m *Metric) Free() {
 	metricPool.Put(m)
 }

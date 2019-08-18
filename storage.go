@@ -60,7 +60,7 @@ func (s *Storage) Write(m *Metric) error {
 	return nil
 }
 
-// Storage.Flush flushes buffered data into storage file
+// Flush flushes buffered data into storage file
 func (s *Storage) Flush(lock bool) error {
 	if lock {
 		s.mutex.Lock()
