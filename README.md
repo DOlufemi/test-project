@@ -8,9 +8,9 @@ POST data in specified format at URL /api/v1/write
 ```json
 {"ts": 1000000, "key": "metric1", "val": 123}
 ```
-* ts — timestamp (unix time)
-* key — metric name
-* val — metric value
+  * ts — timestamp (unix time)
+  * key — metric name
+  * val — metric value
 
 Stored format
 -------------
