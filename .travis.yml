@@ -1,0 +1,13 @@
+language: go
+
+go:
+  - "1.12"
+
+jobs:
+  include:
+    - stage: test
+      name: gotest
+      script: go test .
+    - stage: build
+      name: gobuild
+      script: go build .
