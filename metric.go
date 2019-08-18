@@ -36,7 +36,7 @@ func ParseMetric(data []byte) (*Metric, error) {
 	}
 	if len(result.Key) == 0 {
 		result.Free()
-		return nil, fmt.Errorf("Empty metric key")
+		return nil, fmt.Errorf("empty metric key")
 	}
 
 	return result, nil
