@@ -35,7 +35,7 @@ func main() {
 
 	sigchan := make(chan os.Signal, 1)
 	go handleSig(sigchan)
-	signal.Notify(sigchan, syscall.SIGHUP)
+	signal.Notify(sigchan, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
 	http.HandleFunc("/api/v1/write", handleAPIv1Write)
 
