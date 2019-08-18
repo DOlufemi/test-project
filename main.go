@@ -58,7 +58,10 @@ func handleSig(sigchan chan os.Signal, storage *Storage) {
 			}
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			log.Println("Flushing storage")
-			storage.Flush(true)
+			err := storage.Flush(true)
+			if err != nil {
+				log.Printf("Failed to flush storage: %s", err)
+			}
 			os.Exit(0)
 		}
 	}
