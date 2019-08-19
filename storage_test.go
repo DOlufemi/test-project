@@ -20,11 +20,10 @@ func TestStorageFlush(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(spath)
 
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
 	s.Flush(true)
-
-	time.Sleep(1 * time.Second)
+	s.Wait()
 
 	buf, err := ioutil.ReadFile(spath)
 	assert.Nil(t, err)
@@ -39,13 +38,12 @@ func TestStorageBatch(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(spath)
 
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-
-	time.Sleep(1 * time.Second)
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Wait()
 
 	buf, err := ioutil.ReadFile(spath)
 	assert.Nil(t, err)
@@ -56,17 +54,18 @@ func TestStorageBatch(t *testing.T) {
 func TestStorageTime(t *testing.T) {
 	spath := filepath.Join(os.TempDir(), storName)
 	_ = os.Remove(spath)
-	s, err := NewStorage(spath, 100, 1*time.Second)
+	s, err := NewStorage(spath, 100, 500*time.Millisecond)
 	assert.Nil(t, err)
 	defer os.Remove(spath)
 
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
-	assert.Nil(t, s.Write(&Metric{TS: 0, Key: "metric1", Value: 10}))
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
+	s.Write(&Metric{TS: 0, Key: "metric1", Value: 10})
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(700 * time.Millisecond)
+	s.Wait()
 
 	buf, err := ioutil.ReadFile(spath)
 	assert.Nil(t, err)

@@ -16,6 +16,8 @@ var (
 	maxbatch int
 	maxtime  int
 	addr     = "[::1]:8080"
+
+	stopping bool
 )
 
 func main() {
@@ -58,7 +60,9 @@ func handleSig(sigchan chan os.Signal, storage *Storage) {
 			}
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			log.Println("[INFO] Flushing storage")
+			stopping = true
 			storage.Flush(true)
+			storage.Wait()
 			os.Exit(0)
 		}
 	}

@@ -13,14 +13,16 @@ import (
 type Storage struct {
 	fd       *os.File
 	buf      *bytes.Buffer
+	bufwg    sync.WaitGroup
+	fchan    chan *bytes.Buffer
 	timer    *time.Timer
 	maxtime  time.Duration
 	maxbatch int
 	curbatch int
-	mlock    sync.Mutex
-	dlock    sync.Mutex
-	aiochan  chan bool
+	lock     sync.Mutex
 }
+
+const maxAsyncWrites = 10
 
 var (
 	bufPool = sync.Pool{
@@ -42,11 +44,12 @@ func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, err
 		buf:      bufPool.Get().(*bytes.Buffer),
 		maxtime:  maxtime,
 		maxbatch: maxbatch,
-		aiochan:  make(chan bool, 10),
+		fchan:    make(chan *bytes.Buffer, maxAsyncWrites),
 	}
 
 	s.timer = time.NewTimer(maxtime)
 	s.timer.Stop()
+	go s.flusher()
 	go s.flushOnTimeout()
 
 	return s, nil
@@ -54,17 +57,18 @@ func NewStorage(path string, maxbatch int, maxtime time.Duration) (*Storage, err
 
 // Reload reopens storage file
 func (s *Storage) Reload() error {
-	s.mlock.Lock()
-	defer s.mlock.Unlock()
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	s.Flush(false)
+	s.Wait()
 	fd, err := os.OpenFile(s.fd.Name(), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0640)
 	s.fd = fd
 	return err
 }
 
-func (s *Storage) Write(m *Metric) error {
-	s.mlock.Lock()
-	defer s.mlock.Unlock()
+func (s *Storage) Write(m *Metric) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
 	if s.buf.Len() == 0 {
 		s.timer.Reset(s.maxtime)
@@ -77,41 +81,45 @@ func (s *Storage) Write(m *Metric) error {
 	if s.curbatch >= s.maxbatch {
 		s.Flush(false)
 	}
-	return nil
 }
 
 // Flush flushes buffered data into storage file
 func (s *Storage) Flush(lock bool) {
 	if lock {
-		s.mlock.Lock()
-		defer s.mlock.Unlock()
+		s.lock.Lock()
+		defer s.lock.Unlock()
 	}
 	s.timer.Stop()
 	s.curbatch = 0
 
-	oldbuf := s.buf
-	s.buf = bufPool.Get().(*bytes.Buffer)
+	s.bufwg.Add(1)
+	s.fchan <- s.buf
 
-	s.aiochan <- true
-	go func() {
-		s.dlock.Lock()
-		_, err := io.Copy(s.fd, oldbuf)
-		if err != nil {
-			log.Printf("[ERROR] Failed to flush buffer to storage: %s", err)
-		}
-		s.dlock.Unlock()
-		err = s.fd.Sync()
-		if err != nil {
-			log.Printf("[ERROR] Failed to fsync storage: %s", err)
-		}
-		oldbuf.Reset()
-		bufPool.Put(oldbuf)
-		_ = <-s.aiochan
-	}()
+	s.buf = bufPool.Get().(*bytes.Buffer)
+}
+
+func (s *Storage) Wait() {
+	s.bufwg.Wait()
 }
 
 func (s *Storage) flushOnTimeout() {
 	for range s.timer.C {
 		s.Flush(true)
+	}
+}
+
+func (s *Storage) flusher() {
+	for buf := range s.fchan {
+		_, err := io.Copy(s.fd, buf)
+		if err != nil {
+			log.Fatalf("[ERROR] Failed to flush buffer to storage: %s", err)
+		}
+		err = s.fd.Sync()
+		if err != nil {
+			log.Fatalf("[ERROR] Failed to fsync storage: %s", err)
+		}
+		buf.Reset()
+		bufPool.Put(buf)
+		s.bufwg.Done()
 	}
 }

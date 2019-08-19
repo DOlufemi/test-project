@@ -13,6 +13,11 @@ func handleAPIv1Write(storage *Storage) func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
+		if stopping {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+
 		if debug {
 			log.Printf("[DEBUG] Got metric from %s", r.RemoteAddr)
 		}
@@ -36,11 +41,6 @@ func handleAPIv1Write(storage *Storage) func(w http.ResponseWriter, r *http.Requ
 		}
 		defer m.Free()
 
-		err = storage.Write(m)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Printf("[ERROR] Failed to save metric: %s", err)
-			return
-		}
+		storage.Write(m)
 	}
 }

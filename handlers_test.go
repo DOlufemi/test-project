@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -26,14 +25,10 @@ func TestAPIV1Write200(t *testing.T) {
 	defer os.Remove(spath)
 	defer storage.Flush(true)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/write", handleAPIv1Write(storage))
-	ts := httptest.NewServer(mux)
+	ts := httptest.NewServer(http.HandlerFunc(handleAPIv1Write(storage)))
 	defer ts.Close()
 
-	apiurl := fmt.Sprintf("%s/api/v1/write", ts.URL)
-
-	res200, err := http.Post(apiurl, "application/json", bytes.NewBufferString(expect200))
+	res200, err := http.Post(ts.URL, "application/json", bytes.NewBufferString(expect200))
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, res200.StatusCode)
 }
@@ -44,16 +39,13 @@ func TestAPIV1Write400(t *testing.T) {
 	storage, err := NewStorage(spath, 1, 1*time.Second)
 	assert.Nil(t, err)
 	defer os.Remove(spath)
+	defer storage.Wait()
 	defer storage.Flush(true)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/write", handleAPIv1Write(storage))
-	ts := httptest.NewServer(mux)
+	ts := httptest.NewServer(http.HandlerFunc(handleAPIv1Write(storage)))
 	defer ts.Close()
 
-	apiurl := fmt.Sprintf("%s/api/v1/write", ts.URL)
-
-	res400, err := http.Post(apiurl, "application/json", bytes.NewBufferString(expect400))
+	res400, err := http.Post(ts.URL, "application/json", bytes.NewBufferString(expect400))
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusBadRequest, res400.StatusCode)
 }
@@ -66,19 +58,16 @@ func BenchmarkAPIv1Write(b *testing.B) {
 	defer os.Remove(spath)
 	defer storage.Flush(true)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/write", handleAPIv1Write(storage))
-	ts := httptest.NewServer(mux)
+	ts := httptest.NewServer(http.HandlerFunc(handleAPIv1Write(storage)))
 	defer ts.Close()
 
-	apiurl := fmt.Sprintf("%s/api/v1/write", ts.URL)
 	defTrans := http.DefaultTransport.(*http.Transport)
 	defTrans.MaxIdleConnsPerHost = 100
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			res200, err := http.Post(apiurl, "application/json", bytes.NewBufferString(expect200))
+			res200, err := http.Post(ts.URL, "application/json", bytes.NewBufferString(expect200))
 			if err != nil {
 				b.Fatal(err)
 			}
