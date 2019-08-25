@@ -44,5 +44,8 @@ func ParseMetric(data []byte) (*Metric, error) {
 
 // Free releases Metric struct to pool
 func (m *Metric) Free() {
+	m.TS = 0
+	m.Key = ""
+	m.Value = 0
 	metricPool.Put(m)
 }
