@@ -3,7 +3,7 @@ WORKDIR /go/src/github.com/iavael/test-project
 COPY . .
 RUN go build -v .
 
-FROM alpine:3.10
+FROM alpine:3.16
 EXPOSE 8080
 VOLUME /var/lib/metrics/
 COPY --from=builder /go/src/github.com/iavael/test-project/test-project /usr/local/bin/
